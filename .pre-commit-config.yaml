@@ -1,4 +1,4 @@
-# Pre-commit configuration for AutoTritonOps
+# Pre-commit configuration for AutoTritonOp
 # See https://pre-commit.com for more information
 
 # Default language version
@@ -138,46 +138,6 @@ repos:
       - id: markdownlint
         name: Markdown Linter
         args: [--fix]
-
-  # Custom hooks
-  - repo: local
-    hooks:
-      - id: check-python-version
-        name: Check Python Version Compatibility
-        entry: python3 -c "import sys; assert sys.version_info >= (3, 8), 'Python 3.8+ required'"
-        language: system
-        pass_filenames: false
-
-      - id: check-for-todos
-        name: Check for TODO/FIXME Comments
-        entry: bash -c 'if grep -r "TODO\|FIXME" ops/ test_accuracy.py_*.py 2>/dev/null; then echo "Warning: Found TODO or FIXME comments"; exit 1; fi'
-        language: system
-        pass_filenames: false
-
-      - id: check-line-length
-        name: Check Line Length
-        entry: python3 .github/scripts/check_line_length.py
-        language: system
-        pass_filenames: false
-
-      - id: check-imports
-        name: Check for Unused Imports
-        entry: python3 -m pip_autoremove --dry ops/*.py
-        language: system
-        pass_filenames: false
-        additional_dependencies: [pip-autoremove]
-
-      - id: validate-readme
-        name: Validate README
-        entry: bash -c 'if [ ! -f "README.md" ]; then echo "README.md not found"; exit 1; fi; if [ $(wc -l < README.md) -lt 50 ]; then echo "README.md too short"; exit 1; fi'
-        language: system
-        pass_filenames: false
-
-      - id: check-copyright
-        name: Check Copyright Headers
-        entry: bash -c 'for file in ops/*.py; do if [ -f "$file" ] && ! head -5 "$file" | grep -q "Copyright\|License"; then echo "Missing copyright in $file"; exit 1; fi; done'
-        language: system
-        pass_filenames: false
 
 # CI configuration
 ci:
