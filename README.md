@@ -1,11 +1,11 @@
-# AutoTritonOps - Triton-Ascend Operator Implementation
+# AutoTritonOp - Triton-Ascend 算子实现
 
 本项目包含基于 Triton-Ascend 实现的高性能算子代码，包括 VectorAdd、Softmax、LayerNorm、FlashAttention 和 Matmul 算子。
 
 ## 项目结构
 
 ```
-AutoTritonOps/
+AutoTritonOp/
 ├── ops/                    # 算子实现目录
 │   ├── vector_add.py        # 向量加法算子
 │   ├── softmax.py           # Softmax 算子
@@ -200,7 +200,7 @@ result = matmul(a, b, activation="leaky_relu_custom")
 ### 1. 构建 Wheel 包 (`.github/workflows/build-wheel.yml`)
 - 自动构建多 Python 版本的 wheel 包
 - 支持发布到 PyPI 和 Test PyPI
-- 在推送标签或合并到 develop 分支时触发
+- 在推送标签或合并到 main/develop 分支时触发
 
 ### 2. 代码规范检查 (`.github/workflows/pre-commit-check.yml`)
 - 运行 pre-commit 钩子检查代码质量
@@ -219,6 +219,50 @@ result = matmul(a, b, activation="leaky_relu_custom")
 - 检查代码质量（Flake8、MyPy、Bandit）
 - 检查文档字符串风格（pydocstyle）
 - 检查文件格式和编码
+
+## 触发 GitHub Actions Workflows
+
+### 自动触发（推荐）
+
+以下操作会自动触发所有 workflows：
+
+```bash
+cd /home/wpf/AutoTritonOp
+
+# 1. 修改代码后提交
+git add .
+git commit -m "更新文档和配置"
+
+# 2. 推送到 main 或 develop 分支（自动触发所有 workflows）
+git push origin main
+```
+
+**自动触发的 workflows：**
+- ✅ `build-wheel.yml` - 构建 wheel 包
+- ✅ `pre-commit-check.yml` - 代码规范检查
+- ✅ `archive-artifacts.yml` - 归档制品
+
+### 手动触发
+
+通过 GitHub 网页手动触发 workflows：
+
+1. 访问：`https://gitcode.com/aflyingto/AutoTritonOps/actions`
+2. 点击左侧的 "Workflows" 菜单
+3. 选择要运行的 workflow
+4. 点击 "Run workflow" 按钮
+5. 选择分支和参数（如果有）
+6. 点击绿色的 "Run workflow" 按钮
+
+### 查看运行状态
+
+访问：`https://gitcode.com/aflyingto/AutoTritonOps/actions`
+
+### 下载制品
+
+1. 访问：`https://gitcode.com/aflyingto/AutoTritonOps/actions`
+2. 点击运行记录
+3. 滚动到页面底部的 "Artifacts" 部分
+4. 点击下载所需的制品
 
 ## 安装 Pre-commit
 

@@ -1,0 +1,115 @@
+name: Build and Publish Wheel Package
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  build-wheel:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+        include:
+          - python-version: '3.8'
+            os: ubuntu-20.04
+          - python-version: '3.9'
+            os: ubuntu-20.04
+          - python-version: '3.10'
+            os: ubuntu-22.04
+          - python-version: '3.11'
+            os: ubuntu-22.04
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build wheel setuptools twine
+        pip install torch_npu  # 如果可用，否则可以跳过
+
+    - name: Install triton-ascend (optional)
+      continue-on-error: true
+      run: |
+        if [ -d "/opt/triton-ascend" ]; then
+          pip install -e /opt/triton-ascend
+        else
+          echo "triton-ascend not found, skipping installation"
+        fi
+
+    - name: Build wheel package
+      run: |
+        python -m build
+      env:
+        TRITON_ASCEND_PATH: /opt/triton-ascend
+
+    - name: Upload wheel artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: wheel-${{ matrix.python-version }}
+        path: dist/*.whl
+        retention-days: 30
+
+    - name: Check wheel
+      run: |
+        pip install twine
+        twine check dist/*
+
+  publish-to-pypi:
+    needs: build-wheel
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: pypi
+      url: https://pypi.org/project/autotritonops/
+    permissions:
+      id-token: write
+
+    steps:
+    - name: Download all wheels
+      uses: actions/download-artifact@v4
+      with:
+        path: dist/
+
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        packages-dir: dist/
+        skip-existing: true
+
+  publish-to-test-pypi:
+    needs: build-wheel
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    environment:
+      name: test-pypi
+      url: https://test.pypi.org/project/autotritonops/
+    permissions:
+      id-token: write
+
+    steps:
+    - name: Download all wheels
+      uses: actions/download-artifact@v4
+      with:
+        path: dist/
+
+    - name: Publish to Test PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://test.pypi.org/legacy/
+        packages-dir: dist/
+        skip-existing: true
