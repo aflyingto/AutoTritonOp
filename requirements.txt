@@ -1,0 +1,31 @@
+# AutoTritonOps - Dependencies
+
+# Core dependencies
+torch>=1.10.0
+numpy>=1.20.0
+
+# Optional dependencies for NPU support
+# torch_npu  # Uncomment if using NPU device
+
+# Optional dependencies for Triton-Ascend
+# triton-ascend  # Uncomment if using Triton-Ascend backend
+
+# Development dependencies
+pytest>=7.0.0
+black>=22.0.0
+isort>=5.10.0
+flake8>=4.0.0
+mypy>=0.950
+bandit>=1.7.0
+pre-commit>=2.20.0
+
+# Build dependencies
+build>=0.10.0
+wheel>=0.40.0
+setuptools>=61.42.0
+twine>=4.0.0
+
+# Documentation dependencies
+sphinx>=4.0.0
+sphinx-rtd-theme>=1.0.0
+myst-parser>=0.15.0

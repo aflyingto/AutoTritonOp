@@ -1,0 +1,13 @@
+include README.md
+include LICENSE
+include requirements.txt
+include pyproject.toml
+include setup.py
+recursive-include ops *.py
+recursive-include .github *.py *.yml *.yaml
+exclude .git*
+exclude .pytest_cache*
+exclude __pycache__
+exclude *.pyc
+exclude .DS_Store
+global-exclude *.bak *.swp *~
