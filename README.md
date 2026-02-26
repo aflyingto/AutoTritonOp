@@ -200,19 +200,20 @@ result = matmul(a, b, activation="leaky_relu_custom")
 ### 1. 构建 Wheel 包 (`.github/workflows/build-wheel.yml`)
 - 自动构建多 Python 版本的 wheel 包
 - 支持发布到 PyPI 和 Test PyPI
-- 在推送标签或合并到 main/develop 分支时触发
+- **仅在创建标签（v*）或手动触发时运行**
 
 ### 2. 代码规范检查 (`.github/workflows/pre-commit-check.yml`)
 - 运行 pre-commit 钩子检查代码质量
 - 使用 Black、isort、Flake8、MyPy、Bandit 等工具
 - 检查文档字符串风格和代码规范
+- **在推送到 main 或 develop 分支时自动运行**
 
 ### 3. 归档制品 (`.github/workflows/archive-artifacts.yml`)
 - 自动创建源码归档（tar.gz 和 zip）
 - 打包 wheel 文件
 - 生成文档归档
 - 计算校验和（SHA256 和 MD5）
-- 归档到 GitHub 制品厂（保留 90 天）
+- **仅在创建 Release 或手动触发时运行**
 
 ### Pre-commit 配置 (`.pre-commit-config.yaml`)
 - 自动格式化代码（Black、isort）
@@ -222,25 +223,38 @@ result = matmul(a, b, activation="leaky_relu_custom")
 
 ## 触发 GitHub Actions Workflows
 
-### 自动触发（推荐）
+### 自动触发
 
-以下操作会自动触发所有 workflows：
+以下操作会自动触发相应的 workflows：
 
+#### 推送代码（触发代码检查）
 ```bash
 cd /home/wpf/AutoTritonOp
 
-# 1. 修改代码后提交
+# 修改代码后提交并推送
 git add .
-git commit -m "更新文档和配置"
-
-# 2. 推送到 main 或 develop 分支（自动触发所有 workflows）
-git push origin main
+git commit -m "添加新功能"
+git push origin main  # 或 develop 分支
 ```
-
 **自动触发的 workflows：**
-- ✅ `build-wheel.yml` - 构建 wheel 包
-- ✅ `pre-commit-check.yml` - 代码规范检查
-- ✅ `archive-artifacts.yml` - 归档制品
+- ✅ `pre-commit-check.yml` - 代码规范检查（仅此一个）
+
+#### 创建标签（触发构建和发布）
+```bash
+# 创建版本标签
+git tag -a v1.0.0 -m "Release version 1.0.0"
+git push origin v1.0.0
+```
+**自动触发的 workflows：**
+- ✅ `build-wheel.yml` - 构建 wheel 包并发布到 PyPI
+
+#### 创建 Release（触发归档制品）
+```bash
+# 在 GitHub 上创建 Release 后自动触发
+# 访问 https://github.com/aflyingto/AutoTritonOp/releases/new
+```
+**自动触发的 workflows：**
+- ✅ `archive-artifacts.yml` - 归档制品到 GitHub 制品厂
 
 ### 手动触发
 
