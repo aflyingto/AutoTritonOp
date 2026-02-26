@@ -1,0 +1,193 @@
+# Pre-commit configuration for AutoTritonOps
+# See https://pre-commit.com for more information
+
+# Default language version
+default_language_version:
+  python: python3.10
+
+# Minimum version of pre-commit
+minimum_pre_commit_version: "2.20.0"
+
+# Global exclude patterns
+exclude: |
+  (?x)^(
+    \.git/
+    | \.github/
+    | \.tox/
+    | \.venv/
+    | \.eggs/
+    | \.venv/
+    | build/
+    | dist/
+    | _build/
+    | buck-out/
+    | \.mypy_cache/
+    | \.pytest_cache/
+    | \.coverage\.
+    | htmlcov/
+  )
+
+# Repositories for pre-commit hooks
+repos:
+  # General hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        name: Trim Trailing Whitespace
+        args: [--markdown-linebreak-ext=md]
+
+      - id: end-of-file-fixer
+        name: Fix End of Files
+
+      - id: check-yaml
+        name: Check YAML Syntax
+
+      - id: check-toml
+        name: Check TOML Syntax
+
+      - id: check-json
+        name: Check JSON Syntax
+
+      - id: check-added-large-files
+        name: Check for Large Files
+        args: ['--maxkb=1000']
+
+      - id: check-merge-conflict
+        name: Check for Merge Conflicts
+
+      - id: check-case-conflict
+        name: Check for Case Conflicts
+
+      - id: check-symlinks
+        name: Check for Broken Symlinks
+
+      - id: detect-private-key
+        name: Detect Private Keys
+
+      - id: mixed-line-ending
+        name: Fix Mixed Line Ending
+        args: ['--fix=lf']
+
+  # Python specific hooks
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        name: Black (Code Formatter)
+        language_version: python3.10
+        args: [--line-length=100]
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        name: isort (Import Sorter)
+        args: [--profile=black, --line-length=100]
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        name: Flake8 (Linter)
+        args:
+          - --max-line-length=100
+          - --extend-ignore=E203,W503,E501
+          - --show-source
+          - --statistics
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        name: MyPy (Type Checker)
+        args:
+          - --ignore-missing-imports
+          - --no-error-summary
+          - --python-version=3.10
+        additional_dependencies:
+          - types-requests
+          - types-PyYAML
+        exclude: ^(tests/|examples/)
+
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.6
+    hooks:
+      - id: bandit
+        name: Bandit (Security Linter)
+        args:
+          - -r
+          - -f
+          - json
+          - -o
+          - bandit-report.json
+        files: ^ops/
+        pass_filenames: false
+
+  - repo: https://github.com/PyCQA/pydocstyle
+    rev: 6.3.0
+    hooks:
+      - id: pydocstyle
+        name: pydocstyle (Docstring Style Checker)
+        args: [--convention=google]
+
+  # Documentation hooks
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.39.0
+    hooks:
+      - id: markdownlint
+        name: Markdown Linter
+        args: [--fix]
+
+  # Custom hooks
+  - repo: local
+    hooks:
+      - id: check-python-version
+        name: Check Python Version Compatibility
+        entry: python3 -c "import sys; assert sys.version_info >= (3, 8), 'Python 3.8+ required'"
+        language: system
+        pass_filenames: false
+
+      - id: check-for-todos
+        name: Check for TODO/FIXME Comments
+        entry: bash -c 'if grep -r "TODO\|FIXME" ops/ test_accuracy.py_*.py 2>/dev/null; then echo "Warning: Found TODO or FIXME comments"; exit 1; fi'
+        language: system
+        pass_filenames: false
+
+      - id: check-line-length
+        name: Check Line Length
+        entry: python3 .github/scripts/check_line_length.py
+        language: system
+        pass_filenames: false
+
+      - id: check-imports
+        name: Check for Unused Imports
+        entry: python3 -m pip_autoremove --dry ops/*.py
+        language: system
+        pass_filenames: false
+        additional_dependencies: [pip-autoremove]
+
+      - id: validate-readme
+        name: Validate README
+        entry: bash -c 'if [ ! -f "README.md" ]; then echo "README.md not found"; exit 1; fi; if [ $(wc -l < README.md) -lt 50 ]; then echo "README.md too short"; exit 1; fi'
+        language: system
+        pass_filenames: false
+
+      - id: check-copyright
+        name: Check Copyright Headers
+        entry: bash -c 'for file in ops/*.py; do if [ -f "$file" ] && ! head -5 "$file" | grep -q "Copyright\|License"; then echo "Missing copyright in $file"; exit 1; fi; done'
+        language: system
+        pass_filenames: false
+
+# CI configuration
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+
+    for more information see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false
