@@ -9,8 +9,7 @@ on:
 
 jobs:
   pre-commit-check:
-    runs:
-      on: ubuntu-latest
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
@@ -57,19 +56,19 @@ jobs:
 
     - name: Run Black (code formatter)
       run: |
-        black --check --diff ops/ test_accuracy.py_*.py
+        black --check --diff ops/ test_*.py
 
     - name: Run isort (import sorter)
       run: |
-        isort --check-only --diff ops/ test_accuracy.py_*.py
+        isort --check-only --diff ops/ test_*.py
 
     - name: Run Flake8 (linter)
       run: |
-        flake8 ops/ test_accuracy.py_*.py --show-source --statistics
+        flake8 ops/ test_*.py --show-source --statistics
 
     - name: Run Bandit (security linter)
       run: |
-        bandit -r ops/ test_accuracy.py_*.py -f json -o bandit-report.json || true
+        bandit -r ops/ test_*.py -f json -o bandit-report.json || true
       continue-on-error: true
 
     - name: Upload Bandit report
@@ -94,41 +93,19 @@ jobs:
 
     - name: Check for TODO/FIXME comments
       run: |
-        if grep -r "TODO\|FIXME" ops/ test_accuracy.py_*.py; then
-          echo "Warning: Found TODO or FIXME comments in the code"
+        if grep -r "TODO\|FIXME" ops/ test_*.py; then
+          echo "Warning: Found TODO or FIXME comments in code"
           exit 1
         fi
       continue-on-error: true
 
     - name: Check line length
       run: |
-        python3 -c "
-import sys
-max_line_length = 100
-violations = []
-for filename in ['ops/vector_add.py', 'ops/softmax.py', 'ops/layer_norm.py', 'ops/flash_attention.py', 'ops/matmul.py']:
-    try:
-        with open(filename, 'r') as f:
-            for i, line in enumerate(f, 1):
-                if len(line.rstrip()) > max_line_length:
-                    violations.append(f'{filename}:{i}:{len(line.rstrip())}')
-    except FileNotFoundError:
-        pass
-
-if violations:
-    print(f'Found {len(violations)} lines exceeding {max_line_length} characters:')
-    for v in violations[:10]:
-        print(f'  {v}')
-    if len(violations) > 10:
-        print(f'  ... and {len(violations) - 10} more')
-    sys.exit(1)
-else:
-    print('All lines are within the maximum length limit.')
-        "
+        python3 .github/scripts/check_line_length.py
 
     - name: Check file encoding
       run: |
-        for file in ops/*.py test_accuracy.py_*.py; do
+        for file in ops/*.py test_*.py; do
           if [ -f "$file" ]; then
             file -i "$file" | grep -q "utf-8" || echo "Warning: $file is not UTF-8 encoded"
           fi
